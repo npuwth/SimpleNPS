@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-03 18:00:45
+ * @LastEditTime: 2021-12-29 11:53:04
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -64,7 +64,7 @@ u_int8_t* network_arp_recv(u_int8_t *arp_buffer)//called by ethernet receive//ca
 
 	if (ntohs(arp_packet->op_code) == ARP_REQUEST)//is a request
 	{
-		network_arp_send(arp_packet->source_ip, arp_packet->source_mac);//ARP_REPLY
+		network_arp_send_reply(arp_packet->source_ip, arp_packet->source_mac);//ARP_REPLY
 		return NULL;
 	}
 	else if (ntohs(arp_packet->op_code) == ARP_REPLY)//is a reply

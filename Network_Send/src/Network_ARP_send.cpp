@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-10 15:26:36
+ * @LastEditTime: 2021-12-29 11:51:06
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -19,15 +19,14 @@ extern u_int8_t local_ip[4];
 
 u_int8_t arp_buffer[MAX_SIZE];
 
-void load_arp_packet(u_int8_t *destination_ip)
+void load_arp_packet(u_int8_t *destination_ip, u_int16_t arp_code)
 {
 	struct arp_pkt *arp_packet = (struct arp_pkt *)(arp_buffer);
 	arp_packet->hardware_type = htons(ARP_HARDWARE);
 	arp_packet->protocol_type = htons(ETHERNET_IP);
 	arp_packet->hardware_addr_length = 6;
 	arp_packet->protocol_addr_length = 4;
-	// arp_packet->op_code = htons(ARP_REPLY);
-	arp_packet->op_code = htons(ARP_REQUEST);
+	arp_packet->op_code = htons(arp_code);
 	int i;
 	for (i = 0; i < 6; i++)
 	{
@@ -48,18 +47,24 @@ void load_arp_packet(u_int8_t *destination_ip)
 	}
 }
 
-void network_arp_send(u_int8_t *destination_ip, u_int8_t *ethernet_dest_mac)
+void network_arp_send_request(u_int8_t *destination_ip, u_int8_t *ethernet_dest_mac)
 {
 	printf("network arp send!\n");
 	struct arp_pkt *arp_packet = (struct arp_pkt *)arp_buffer;
-	load_arp_packet(destination_ip);
+	load_arp_packet(destination_ip, ARP_REQUEST);
+	//use ethernet fuction to send the packet
+	ethernet_send_packet(arp_buffer, ethernet_dest_mac, ETHERNET_ARP, sizeof(struct arp_pkt));
+}
+
+void network_arp_send_reply(u_int8_t *destination_ip, u_int8_t *ethernet_dest_mac)
+{
+	struct arp_pkt *arp_packet = (struct arp_pkt *)arp_buffer;
+	load_arp_packet(destination_ip, ARP_REPLY);
 	int i;
 	for (i = 0; i < 6; i++)
 	{
-		;
-		// arp_packet->destination_mac[i] = ethernet_dest_mac[i];
+		arp_packet->destination_mac[i] = ethernet_dest_mac[i];
 	}
 	//use ethernet fuction to send the packet
 	ethernet_send_packet(arp_buffer, ethernet_dest_mac, ETHERNET_ARP, sizeof(struct arp_pkt));
-
 }

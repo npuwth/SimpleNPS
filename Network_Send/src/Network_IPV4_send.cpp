@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-10 16:24:16
+ * @LastEditTime: 2021-12-29 11:54:24
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -178,12 +178,11 @@ int network_ipv4_send(u_int8_t *ip_buffer, FILE *fp)
 			printf("need to use arp protocol.\n");
 			//check if the target pc and the local host is in the same lan
 			// if (is_same_lan(local_ip, ip_hdr->destination_ip))//here exists some logical problem
-            network_arp_send(ip_hdr->destination_ip, broadcast_mac);
+            network_arp_send_request(ip_hdr->destination_ip, broadcast_mac);
 
 			//wait for replying, get the destination mac
 			struct pcap_pkthdr *pkt_hdr;
 			u_int8_t *pkt_content;
-			// printf("i have come to here\n");
 			Sleep(2000);
 			while(count < 3)
 			{
@@ -214,6 +213,11 @@ int network_ipv4_send(u_int8_t *ip_buffer, FILE *fp)
 			    		break;
 			    }
 				count++;
+			}
+			if (destination_mac == NULL)
+			{
+				printf("Error: IP can not get destination mac!\n");
+				return 0;
 			}
 		}
 		

@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-10 15:37:11
+ * @LastEditTime: 2021-12-29 12:12:54
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -107,7 +107,8 @@ DWORD WINAPI thread_send(LPVOID pM)
 		ethernet_send_que_head = (ethernet_send_que_head + 1) % MAX_QUE;
 		V(&ethernet_send_mutex);
 		V(&ethernet_send_empty);
-		pcap_sendpacket(handle,send_buffer,send_packet_size);//better copy than directly use ethernet_send_pool
+		if(pcap_sendpacket(handle,send_buffer,send_packet_size)!=0)
+		printf("Error: pcap send error!!!\n");//better copy than directly use ethernet_send_pool
 	}
 	system("pause");
 	exit(0);

@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-11-26 16:27:58
+ * @LastEditTime: 2021-12-29 12:01:33
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -64,7 +64,7 @@ u_int8_t* network_arp_recv(u_int8_t *arp_buffer)
 
 	if (ntohs(arp_packet->op_code) == ARP_REQUEST)
 	{
-		network_arp_send(arp_packet->source_ip, arp_packet->source_mac);
+		network_arp_send_reply(arp_packet->source_ip, arp_packet->source_mac);
 		return NULL;
 	}
 	else if (ntohs(arp_packet->op_code) == ARP_REPLY)
@@ -73,8 +73,6 @@ u_int8_t* network_arp_recv(u_int8_t *arp_buffer)
 	}
 	else return NULL;
 }
-
-
 
 void output(struct arp_pkt *arp_packet)
 {

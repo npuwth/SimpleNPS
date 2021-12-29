@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-11-27 17:27:05
+ * @LastEditTime: 2021-12-29 12:24:31
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -9,8 +9,8 @@
 #include "Network_IPV4_send.h"
 #include "Network_IPV4_recv.h"
 
-#define MAX_DATA_SIZE 1000000
-#define MAX_QUE 10
+#define MAX_DATA_SIZE 65535
+#define MAX_QUE 50
 
 u_int16_t ip_id = 0;
 u_int16_t size_of_data = 0;
@@ -85,7 +85,7 @@ int is_accept_ip_packet(struct ip_header *ip_hdr)
 
 	for (i = 0; i < 4; i++)
 	{
-		if (ip_hdr->destination_ip[i] != 0xff)break;//here exists a problem, broadcast ip is not ffff_ffff
+		if (ip_hdr->destination_ip[i] != 0xff)break;
 	}
 	if (i == 4)
 	{
@@ -99,7 +99,8 @@ int is_accept_ip_packet(struct ip_header *ip_hdr)
 	u_int16_t check_sum = calculate_check_sum(ip_hdr, 60);
 	if (check_sum == 0xffff || check_sum == 0x0000)
 	{
-		printf("No error in ip_header.\n");
+		// printf("No error in ip_header.\n");
+		;
 	}
 	else
 	{
@@ -155,7 +156,7 @@ int network_ipv4_recv(u_int8_t *ip_buffer)
 		//get current time
 		current = (int)time(NULL);
 		dural = current - previous;
-		printf("%d %d\n", current, previous);
+		printf("current time: %d previous time: %d\n", current, previous);
 		//current time became previous
 		previous = current;
 	}

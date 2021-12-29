@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-10 16:03:00
+ * @LastEditTime: 2021-12-29 12:11:46
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -89,7 +89,7 @@ int ethernet_send_packet(u_int8_t *upper_buffer, u_int8_t *destination_mac, u_in
 	ethernet_send_que_tail = (ethernet_send_que_tail + 1) % MAX_QUE;
 	V(&ethernet_send_mutex);
 	V(&ethernet_send_full);
-	printf("generate OK\n");
+	// printf("generate OK\n");
 	return SUCCESS;
 }
 
@@ -100,7 +100,6 @@ DWORD WINAPI thread_send(LPVOID pM)
 	open_device();
 	while(1)
 	{
-		printf("start waiting...\n");
 		P(&ethernet_send_full);
 		P(&ethernet_send_mutex);
 		printf("ethernet send one packet.\n");
@@ -110,9 +109,8 @@ DWORD WINAPI thread_send(LPVOID pM)
 		V(&ethernet_send_mutex);
 		V(&ethernet_send_empty);
 		if(pcap_sendpacket(handle,send_buffer,send_packet_size)!=0) 
-		printf("!!!pcap send error!!!\n");//better copy than directly use ethernet_send_pool
+		printf("Error: pcap send error!!!\n");//better copy than directly use ethernet_send_pool
 	}
-	printf("over\n");
 	system("pause");
 	exit(0);
 }

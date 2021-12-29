@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-10 15:01:26
+ * @LastEditTime: 2021-12-29 12:00:38
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -164,27 +164,12 @@ DWORD WINAPI thread_receive(LPVOID pM)
 
 DWORD WINAPI thread_handout(LPVOID pM)
 {
-	// FILE* fp = fopen("Ethernet_Receive.png", "wb");
-	// char ch;
-	// int res;
 	u_int16_t current_type;
 	u_int8_t upper_buffer[MAX_SIZE];
 	while (1)
 	{
 		P(&ethernet_recv_full);
 		P(&ethernet_recv_mutex);
-		// for (int i = 0; i < ethernet_recv_packet_size[ethernet_recv_que_head]; i++)
-		// {
-		// 	ch = fputc(ethernet_recv_pool[ethernet_recv_que_head][i], fp);//write into a file
-		// }
-		//res = fwrite(ethernet_recv_pool[ethernet_recv_que_head], sizeof(u_int8_t), ethernet_recv_packet_size[ethernet_recv_que_head], fp);
-        //if(res != ethernet_recv_packet_size[ethernet_recv_que_head])
-		//{
-		  //  printf("Write file error!\n");
-		  //  system("pause");
-		//	exit(0);
-	    //}
-		//fflush(fp);
 		printf("ethernet handout one packet.\n");
 		memcpy(upper_buffer, ethernet_recv_pool[ethernet_recv_que_head], ethernet_recv_packet_size[ethernet_recv_que_head]);
 		// u_int8_t* upper_buffer = ethernet_recv_pool[ethernet_recv_que_head];//copy to a buffer instead of directly use it !!!
@@ -226,7 +211,6 @@ DWORD WINAPI thread_handout(LPVOID pM)
 	        default:break;
 	    }
 	}
-	// fclose(fp);
 	exit(0);
 }
 
