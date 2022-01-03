@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-12-29 21:50:20
- * @LastEditTime: 2022-01-02 22:22:00
+ * @LastEditTime: 2022-01-03 22:11:48
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -16,7 +16,7 @@
 #define MAX_QUE 50
 
 extern u_int8_t local_ip[4];
-extern int local_port;
+extern u_int16_t local_port;
 
 u_int8_t udp_buffer[MAX_UDP_SIZE];
 u_int8_t udp_pseheader[12];
@@ -24,7 +24,7 @@ u_int8_t udp_pseheader[12];
 u_int8_t udp_recv_pool[MAX_QUE][MAX_UDP_SIZE];
 int udp_data_size[MAX_QUE];
 u_int8_t udp_src_address[MAX_QUE][4];
-int udp_src_port[MAX_QUE];
+u_int16_t udp_src_port[MAX_QUE];
 int udp_recv_mutex = 1;
 int udp_recv_empty = MAX_QUE;
 int udp_recv_full = 0;
@@ -50,7 +50,7 @@ void init_udp_recv_buffer()
 
 u_int16_t calculate_check(struct PseUDP_Header* psehdr, u_int16_t* buf, int buflen)
 {
-    int sum = 0;
+    int sum = 0;int count = 0;
     int len = sizeof(struct PseUDP_Header);
 	u_int16_t *p = (u_int16_t*)psehdr;
 	while (len > 1)
@@ -151,10 +151,10 @@ int sendto(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags, socket_addr* 
 
     struct PseUDP_Header* psehdr = (struct PseUDP_Header *)udp_pseheader; //calculate checksum
     u_int16_t* udphdr = (u_int16_t *)udp_buffer;
-    int checkSum = calculate_check(psehdr, udphdr, buflen + UDP_HEADER_SIZE);
+    u_int16_t checkSum = calculate_check(psehdr, udphdr, buflen + UDP_HEADER_SIZE);
     struct UDP_Header* udpheader = (struct UDP_Header*)udp_buffer;
     udpheader->checkSum = checkSum;
-    network_ipv4_send(udp_buffer, buflen + UDP_HEADER_SIZE, dstaddr->sin_ip); //use ip to send datagram
+    network_ipv4_send(udp_buffer, buflen + UDP_HEADER_SIZE, dstaddr->sin_ip, IPPROTO_UDP); //use ip to send datagram
     return buflen;
 }
 
@@ -184,17 +184,19 @@ int closesocket(My_SOCKET* sockp) //free current sockp
 void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip) //call back function by ip layer, buffer contains whole udp datagram
 {
     struct UDP_Header* udphdr = (struct UDP_Header*)buffer;
-    
+    // printf("totalLen:%04x\n", udphdr->udpLen);
+    // for(int i = 0; i < udphdr->udpLen; i++) printf("%02x ", buffer[i]);
     struct PseUDP_Header pse_header;
     pse_header.reserved = 0;
     pse_header.protocolType = 17;
-    pse_header.totalLen = udphdr->udpLen;
+    pse_header.totalLen = ntohs(udphdr->udpLen);
+    u_int16_t totalLen = ntohs(udphdr->udpLen);
     for(int i = 0; i < 4; i++)
     {
         pse_header.srcAddress[i] = source_ip[i];
         pse_header.dstAddress[i] = local_ip[i];
     }
-    u_int16_t check_sum = calculate_check(&pse_header, (u_int16_t* )buffer, udphdr->udpLen);
+    u_int16_t check_sum = calculate_check(&pse_header, (u_int16_t* )buffer, totalLen);
     if(check_sum == 0xffff || check_sum == 0x0000)
     {
         // printf("");
@@ -203,6 +205,7 @@ void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip) //call back funct
     else
     {
         printf("Error: UDP Check Sum Error!\n");
+        printf("check_sum:%04x\n", check_sum);
         return;
     }
     if(ntohs(udphdr->dstPort) == local_port)
@@ -216,13 +219,13 @@ void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip) //call back funct
     }
     P(&udp_recv_empty);
     P(&udp_recv_mutex);
-    memcpy(udp_recv_pool[udp_recv_que_tail], buffer + sizeof(UDP_Header), udphdr->udpLen - sizeof(UDP_Header));
-    udp_data_size[udp_recv_que_tail] = udphdr->udpLen - sizeof(UDP_Header);
+    memcpy(udp_recv_pool[udp_recv_que_tail], buffer + sizeof(UDP_Header), totalLen - sizeof(UDP_Header));
+    udp_data_size[udp_recv_que_tail] = totalLen - sizeof(UDP_Header);
     for(int i = 0; i < 4; i++)
     {
         udp_src_address[udp_recv_que_tail][i] = source_ip[i];
     }
-    udp_src_port[udp_recv_que_tail] = udphdr->srcPort; 
+    udp_src_port[udp_recv_que_tail] = ntohs(udphdr->srcPort); 
     udp_recv_que_tail = (udp_recv_que_tail + 1) % MAX_QUE;
     V(&udp_recv_mutex);
     V(&udp_recv_full);
@@ -244,4 +247,9 @@ void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip) //call back funct
     printf("Destination Port: %04x\n", ntohs(udphdr->dstPort));
     printf("Total Length: %04x\n", ntohs(udphdr->udpLen));
     printf("---------End of UDP Protocol-----------------\n");
+    system("pause");
 }
+
+// DWORD WINAPI thread_udp_send(LPVOID pM)
+
+// DWORD WINAPI thread_udp_receive(LPVOID pM)

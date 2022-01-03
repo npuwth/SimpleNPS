@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-29 12:11:46
+ * @LastEditTime: 2022-01-03 21:51:56
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -15,7 +15,7 @@
 #define MAX_QUE 100//max queue length
 
 u_int32_t size_of_packet = 0;
-u_int8_t buffer[MAX_SIZE];
+u_int8_t ethernet_send_buffer[MAX_SIZE];
 
 u_int8_t ethernet_send_pool[MAX_QUE][MAX_SIZE];//define a ethernet_send_pool as packet buffer between generate and send
 int ethernet_send_packet_size[MAX_QUE];//record packet size for thread_send
@@ -37,7 +37,7 @@ void init_send_packet_buffer()//init queue
 void load_ethernet_header(u_int8_t *destination_mac, u_int16_t ethernet_type)
 {
 	size_of_packet = 0;
-	struct ethernet_header *hdr = (struct ethernet_header *)buffer;
+	struct ethernet_header *hdr = (struct ethernet_header *)ethernet_send_buffer;
 	int i;
 	for (i = 0; i < 6; i++)
 	{
@@ -69,22 +69,23 @@ void load_ethernet_data(u_int8_t *buffer, u_int8_t *upper_buffer, int len)
 		*(buffer + len) = 0;
 		len++;
 	}
+	printf("buffer address:%p\n", buffer);
+	u_int32_t crc = calculate_crc((u_int8_t *)buffer, len);
 
-	u_int32_t crc = calculate_crc(buffer, len);
-
-	*(u_int32_t *)(buffer + len) = crc;
-	size_of_packet += len + 4;
+	*((u_int32_t *)(buffer + len)) = crc;
+	size_of_packet += (len + 4);
+	printf("src crc:%08x\n", crc);
 }
 
 int ethernet_send_packet(u_int8_t *upper_buffer, u_int8_t *destination_mac, u_int16_t ethernet_type, int ethernet_upper_len)
 {
 	load_ethernet_header(destination_mac, ethernet_type);
-	load_ethernet_data(buffer + sizeof(struct ethernet_header), upper_buffer, ethernet_upper_len);
+	load_ethernet_data(ethernet_send_buffer + sizeof(struct ethernet_header), upper_buffer, ethernet_upper_len);
 	
 	P(&ethernet_send_empty);
 	P(&ethernet_send_mutex);
 	printf("ethernet generate one packet.\n");
-	memcpy(ethernet_send_pool[ethernet_send_que_tail], buffer, size_of_packet);
+	memcpy(ethernet_send_pool[ethernet_send_que_tail], ethernet_send_buffer, size_of_packet);
 	ethernet_send_packet_size[ethernet_send_que_tail] = size_of_packet;
 	ethernet_send_que_tail = (ethernet_send_que_tail + 1) % MAX_QUE;
 	V(&ethernet_send_mutex);
@@ -104,7 +105,10 @@ DWORD WINAPI thread_send(LPVOID pM)
 		P(&ethernet_send_mutex);
 		printf("ethernet send one packet.\n");
 		send_packet_size = ethernet_send_packet_size[ethernet_send_que_head];
+		printf("send_packet_size:%d\n", send_packet_size);
 		memcpy(send_buffer, ethernet_send_pool[ethernet_send_que_head], send_packet_size);
+		// for(int i = 0; i < send_packet_size; i++) printf("%02x ", send_buffer[i]);
+		// printf("aaa\n");
 		ethernet_send_que_head = (ethernet_send_que_head + 1) % MAX_QUE;
 		V(&ethernet_send_mutex);
 		V(&ethernet_send_empty);

@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:05:07
- * @LastEditTime: 2022-01-02 21:53:52
+ * @LastEditTime: 2022-01-03 13:41:52
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -37,7 +37,7 @@ int is_same_lan(u_int8_t *local_ip, u_int8_t *destination_ip);
 send ip packet
 call ethernet function to make a complete packet
 */
-int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip);
+int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t upper_protocol_type);
 
 void init_ip_send_buffer();
 

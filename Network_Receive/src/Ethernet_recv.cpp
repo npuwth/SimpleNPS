@@ -1,13 +1,14 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-29 12:00:38
+ * @LastEditTime: 2022-01-03 17:37:54
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
  */
 
 #include "Ethernet_recv.h"
+#include "Network_IPV4_send.h"
 #include "Network_IPV4_recv.h"
 #include "Network_ARP_recv.h"
 
@@ -56,6 +57,8 @@ u_int32_t calculate_crc(u_int8_t *buffer, int len)//calculate crc
 {
 	int i;
 	u_int32_t crc;
+	//very strange here, if i note this printf, the result will be wrong!!!
+	for(int i = 0; i < len; i++) printf("%02x ", buffer[i]);
 	crc = 0xffffffff;
 	for (i = 0; i < len; i++)
 	{
@@ -146,6 +149,7 @@ void ethernet_protocol_packet_callback(u_char *argument, const struct pcap_pkthd
 	
 	P(&ethernet_recv_empty);
 	P(&ethernet_recv_mutex);
+	printf("ethernet receive one packet.\n");
 	memcpy(ethernet_recv_pool[ethernet_recv_que_tail], (u_int8_t*)(packet_content + sizeof(ethernet_header)), k);
 	ethernet_recv_packet_size[ethernet_recv_que_tail] = k;//record packet size
 	packet_type[ethernet_recv_que_tail] = ethernet_type;
@@ -177,7 +181,7 @@ DWORD WINAPI thread_handout(LPVOID pM)
 		ethernet_recv_que_head = (ethernet_recv_que_head + 1) % MAX_QUE;
 		V(&ethernet_recv_mutex);
 		V(&ethernet_recv_empty);
-		
+
 		switch (current_type)//deliver to different upper protocols //this part shouldn't be in the PV area
 	    {
 	        case 0x0800:

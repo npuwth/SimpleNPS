@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-12-29 17:28:43
- * @LastEditTime: 2022-01-02 21:57:22
+ * @LastEditTime: 2022-01-03 11:30:56
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -9,23 +9,23 @@
 
 #include "Header_Include.h"
 
-typedef struct SOCKET_ADDR //地址类型
+typedef struct SOCKET_ADDR //address type
 {
-    int sin_family;
+    u_int16_t sin_family;
     u_int16_t sin_port;
     u_int8_t sin_ip[4];
 }socket_addr;
 
-typedef struct UDP_FIVE //五元组
+typedef struct UDP_FIVE //five param turple
 {
     u_int8_t local_address[4];
-    int local_port;
+    u_int16_t local_port;
     u_int8_t target_address[4];
-    int target_port;
-    int sock_type = SOCK_DGRAM;
+    u_int16_t target_port;
+    u_int16_t sock_type = SOCK_DGRAM;
 }My_SOCKET;
 
-struct PseUDP_Header //UDP伪首部
+struct PseUDP_Header //UDP fake header
 {
     u_int8_t srcAddress[4];
     u_int8_t dstAddress[4];
@@ -34,7 +34,7 @@ struct PseUDP_Header //UDP伪首部
     u_int16_t totalLen;
 };
 
-struct UDP_Header //UDP首部
+struct UDP_Header //UDP header
 {
     u_int16_t srcPort;
     u_int16_t dstPort;

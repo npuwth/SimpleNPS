@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-02 22:20:20
+ * @LastEditTime: 2022-01-03 13:40:39
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -72,7 +72,7 @@ u_int16_t calculate_check_sum(ip_header *ip_hdr, int len)
 	return ~sum;
 }
 
-void load_ip_header(u_int8_t* target_ip)
+void load_ip_header(u_int8_t* target_ip, u_int8_t upper_protocol_type)
 {
 	struct ip_header *ip_hdr = (struct ip_header*)ip_buffer;
 	ip_size_of_packet = 0;
@@ -89,7 +89,7 @@ void load_ip_header(u_int8_t* target_ip)
 									 the last 12 bits is offset
 									 */
 	ip_hdr->time_to_live = 64;//default 1000ms
-	ip_hdr->upper_protocol_type = IPPROTO_TCP;//default upper protocol is tcp
+	ip_hdr->upper_protocol_type = upper_protocol_type;//default upper protocol is tcp
 	ip_hdr->check_sum = 0;//initial zero
 
 	if(is_same_lan(local_ip, target_ip))
@@ -133,7 +133,7 @@ int is_same_lan(u_int8_t *local_ip, u_int8_t *destination_ip)//judge whether und
 	return 1;
 }
 
-int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip)
+int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t upper_protocol_type)
 {
 	//get the size of file
 	// int file_len;
@@ -148,7 +148,7 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip)
 	u_int16_t fragment_offset;
 	while (number_of_fragment)
 	{
-		load_ip_header(target_ip);
+		load_ip_header(target_ip, upper_protocol_type);
 		struct ip_header *ip_hdr = (struct ip_header *)ip_buffer;
 		if (number_of_fragment == 1)//no need to fragment
 		{

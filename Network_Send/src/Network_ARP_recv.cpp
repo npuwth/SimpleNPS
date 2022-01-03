@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-29 11:53:04
+ * @LastEditTime: 2022-01-03 22:34:20
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -70,6 +70,7 @@ u_int8_t* network_arp_recv(u_int8_t *arp_buffer)//called by ethernet receive//ca
 	else if (ntohs(arp_packet->op_code) == ARP_REPLY)//is a reply
 	{
 		return arp_packet->source_mac;
+		printf("i'm here\n"); //very strange here, note this pritf then don't work
 	}
 	else return NULL;
 }
@@ -87,7 +88,7 @@ void output(struct arp_pkt *arp_packet)//output arp packet
 		if (i)printf("-");
 		printf("%02x", arp_packet->source_mac[i]);
 	}
-	printf("\nSourcee IP: ");
+	printf("\nSource IP: ");
 	for (i = 0; i < 4; i++)
 	{
 		if (i)printf(".");

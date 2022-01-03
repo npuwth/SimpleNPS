@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-29 12:01:33
+ * @LastEditTime: 2022-01-03 11:33:04
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -87,7 +87,7 @@ void output(struct arp_pkt *arp_packet)
 		if (i)printf("-");
 		printf("%02x", arp_packet->source_mac[i]);
 	}
-	printf("\nSourcee IP: ");
+	printf("\nSource IP: ");
 	for (i = 0; i < 4; i++)
 	{
 		if (i)printf(".");
