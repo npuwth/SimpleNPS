@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-29 22:26:25
+ * @LastEditTime: 2022-01-02 11:28:02
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -22,19 +22,7 @@
 
 #define SUCCESS 1
 #define FAILURE 0
-#define u_int16_t unsigned short
-
-//define P&V options
-// inline void P(int* s)
-// {
-//     while ((*s) <= 0);
-//     (*s)--;
-// }
-
-// inline void V(int* s)
-// {
-//     (*s)++;
-// }
+// #define u_int16_t unsigned short
 
 void P(int* s);
 void V(int* s);

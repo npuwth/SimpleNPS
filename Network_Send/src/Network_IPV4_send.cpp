@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-29 11:54:24
+ * @LastEditTime: 2022-01-02 22:20:20
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -34,7 +34,7 @@ int ip_send_full = 0;
 
 extern u_int8_t broadcast_mac[6];
 extern u_int8_t local_ip[4];
-extern u_int8_t target_ip[4];
+// extern u_int8_t target_ip[4];
 extern u_int8_t netmask[4];
 extern u_int8_t gateway_ip[4];
 extern pcap_t *handle;
@@ -72,7 +72,7 @@ u_int16_t calculate_check_sum(ip_header *ip_hdr, int len)
 	return ~sum;
 }
 
-void load_ip_header(u_int8_t *ip_buffer)
+void load_ip_header(u_int8_t* target_ip)
 {
 	struct ip_header *ip_hdr = (struct ip_header*)ip_buffer;
 	ip_size_of_packet = 0;
@@ -107,7 +107,7 @@ void load_ip_header(u_int8_t *ip_buffer)
 	ip_size_of_packet += sizeof(ip_header);
 }
 
-void load_ip_data(u_int8_t *ip_buffer, FILE *fp, int len)
+void load_ip_data(u_int8_t* ip_buffer, u_int8_t* buf, int buflen)
 {
 	// int i = 0;
 	// char ch;
@@ -116,9 +116,10 @@ void load_ip_data(u_int8_t *ip_buffer, FILE *fp, int len)
 	// 	*(ip_buffer + i) = ch;
 	// 	i++;
 	// }
-	int read_length = fread(ip_buffer,1,len,fp);
-	if(read_length == 0) printf("There is no data\n");
-	ip_size_of_packet += len;
+	// int read_length = fread(ip_buffer,1,len,fp);
+	// if(read_length == 0) printf("There is no data\n");
+	memcpy(ip_buffer, buf, buflen);
+	ip_size_of_packet += buflen;
 }
 
 int is_same_lan(u_int8_t *local_ip, u_int8_t *destination_ip)//judge whether under the same lan 
@@ -132,27 +133,27 @@ int is_same_lan(u_int8_t *local_ip, u_int8_t *destination_ip)//judge whether und
 	return 1;
 }
 
-int network_ipv4_send(u_int8_t *ip_buffer, FILE *fp)
+int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip)
 {
 	//get the size of file
-	int file_len;
-	fseek(fp, 0, SEEK_END);
-	file_len = ftell(fp);
-	rewind(fp);
-	printf("The file is %d bytes long.\n",file_len);
+	// int file_len;
+	// fseek(fp, 0, SEEK_END);
+	// file_len = ftell(fp);
+	// rewind(fp);
+	// printf("The file is %d bytes long.\n",file_len);
 	//get how many fragments
-	int number_of_fragment = (int)ceil(file_len*1.0 / MAX_IP_PACKET_SIZE);
+	int number_of_fragment = (int)ceil(buflen*1.0 / MAX_IP_PACKET_SIZE);
 	u_int16_t offset = 0;
 	int ip_data_len;
 	u_int16_t fragment_offset;
 	while (number_of_fragment)
 	{
-		load_ip_header(ip_buffer);
+		load_ip_header(target_ip);
 		struct ip_header *ip_hdr = (struct ip_header *)ip_buffer;
 		if (number_of_fragment == 1)//no need to fragment
 		{
 			fragment_offset = 0x0000;//16bits
-			ip_data_len = file_len - offset;
+			ip_data_len = buflen - offset;
 		}
 		else
 		{
@@ -167,7 +168,7 @@ int network_ipv4_send(u_int8_t *ip_buffer, FILE *fp)
 		ip_hdr->total_length = htons(ip_data_len + sizeof(ip_header));
 		ip_hdr->check_sum = calculate_check_sum(ip_hdr, 60);
 		//printf("%04x\n", ip_hdr->check_sum);
-		load_ip_data(ip_buffer + sizeof(ip_header), fp, ip_data_len);
+		load_ip_data(ip_buffer + sizeof(ip_header), buf, ip_data_len);
 
 		//check if the target pc mac is in arp_table
 		u_int8_t *destination_mac = is_existed_ip(ip_hdr->destination_ip);
@@ -196,7 +197,7 @@ int network_ipv4_send(u_int8_t *ip_buffer, FILE *fp)
 			    	int i;
 			    	for (i = 0; i < 6; i++)
 			    	{
-			    		if (ethernet_hdr->destination_mac[i] != local_mac[i])break;
+			    		if (ethernet_hdr->destination_mac[i] != local_mac[i]) break;
 			    	}
 			    	if (i < 6)continue;
     
@@ -238,11 +239,12 @@ int network_ipv4_send(u_int8_t *ip_buffer, FILE *fp)
 		offset += MAX_IP_PACKET_SIZE;
 		// printf("number of left fragment is %d\n",number_of_fragment);
 		number_of_fragment--;
+		buf += MAX_IP_PACKET_SIZE;
 	}
 	//auto increase one
 	ip_packet_id++;
 
-	return 1;
+	return SUCCESS;
 }
 
 DWORD WINAPI thread_ip_send(LPVOID pM)
@@ -270,31 +272,31 @@ DWORD WINAPI thread_ip_send(LPVOID pM)
 	exit(0);
 }
 
-DWORD WINAPI thread_read(LPVOID pM)
-{
-	printf("start reading...\n");
-	FILE *fp;
-	fp = fopen("data.png", "rb");
+// DWORD WINAPI thread_read(LPVOID pM)
+// {
+// 	printf("start reading...\n");
+// 	FILE *fp;
+// 	fp = fopen("data.png", "rb");
 
-	network_ipv4_send(ip_buffer, fp);
+// 	network_ipv4_send(ip_buffer, fp);
 
-	fclose(fp);
-	system("pause");
-	exit(0);
-}
+// 	fclose(fp);
+// 	system("pause");
+// 	exit(0);
+// }
 
 DWORD WINAPI init_ip_sender(LPVOID pM)
 {
 	printf("init_ip_sender!\n");
 	init_ip_send_buffer();
-	HANDLE th[2];
+	HANDLE th[1];
 	th[0] = CreateThread(NULL,0,thread_ip_send,NULL,0,NULL);
-	th[1] = CreateThread(NULL,0,thread_read,NULL,0,NULL);
-	WaitForMultipleObjects(2, th, TRUE, INFINITE);
-	for (int i = 0; i < 2; i++)
-	{
-		CloseHandle(th[i]);
-	}
+	// th[1] = CreateThread(NULL,0,thread_read,NULL,0,NULL);
+	WaitForMultipleObjects(1, th, TRUE, INFINITE);
+	// for (int i = 0; i < 2; i++)
+	// {
+		CloseHandle(th[0]);
+	// }
 	system("pause");
 	exit(0);
 }

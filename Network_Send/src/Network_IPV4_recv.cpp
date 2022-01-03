@@ -1,13 +1,14 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-29 12:24:31
+ * @LastEditTime: 2022-01-02 21:59:04
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
  */
 #include "Network_IPV4_send.h"
 #include "Network_IPV4_recv.h"
+#include "UDP_recv_send.h"
 
 #define MAX_DATA_SIZE 65535
 #define MAX_QUE 50
@@ -20,6 +21,7 @@ u_int8_t data_buffer[MAX_DATA_SIZE];
 u_int8_t ip_recv_pool[MAX_QUE][MAX_DATA_SIZE];//define a ip_recv_pool as data buffer 
 int ip_recv_data_size[MAX_QUE];//record the datasize of every ip data
 u_int8_t data_type[MAX_QUE];
+u_int8_t ip_src_address[MAX_QUE][4];
 int ip_recv_que_head,ip_recv_que_tail;//use a queue to manage the data buffer above
 
 int ip_recv_mutex = 1;
@@ -41,32 +43,6 @@ void init_recv_data_buffer()//init queue
 	ip_recv_que_tail = 0;
 }
 
-/*
-u_int16_t calculate_check_sum(ip_header *ip_hdr, int len)
-{
-	int sum = 0, tmp = len;
-	u_int16_t *p = (u_int16_t*)ip_hdr;
-	while (len > 1)
-	{
-		sum += *p;
-		len -= 2;
-		p++;
-	}
-
-	//len=1 last one byte
-	if (len)
-	{
-		sum += *((u_int8_t*)ip_hdr + tmp - 1);
-	}
-
-	//fold 32 bits to 16 bits
-	while (sum >> 16)
-	{
-		sum = (sum & 0xffff) + (sum >> 16);
-	}
-
-	return ~sum;
-}*/
 
 int is_accept_ip_packet(struct ip_header *ip_hdr)
 {
@@ -120,17 +96,17 @@ void load_data_to_buffer(u_int8_t *buffer, u_int8_t *ip_data, int len)
 	}
 }
 
-int load_data_to_file(u_int8_t *buffer, int len, FILE *fp)
-{
-	int res = fwrite(buffer, sizeof(u_int8_t), len, fp);
-	if (res != len)
-	{
-		printf("Write file error!\n");
-		return 0;
-	}
-	fflush(fp);
-	return SUCCESS;
-}
+// int load_data_to_file(u_int8_t *buffer, int len, FILE *fp)
+// {
+// 	int res = fwrite(buffer, sizeof(u_int8_t), len, fp);
+// 	if (res != len)
+// 	{
+// 		printf("Write file error!\n");
+// 		return 0;
+// 	}
+// 	fflush(fp);
+// 	return SUCCESS;
+// }
 
 int network_ipv4_recv(u_int8_t *ip_buffer)
 {
@@ -183,6 +159,10 @@ int network_ipv4_recv(u_int8_t *ip_buffer)
 		P(&ip_recv_mutex);
 		load_data_to_buffer(ip_recv_pool[ip_recv_que_tail], data_buffer, size_of_data);
 		ip_recv_data_size[ip_recv_que_tail] = size_of_data;
+		for(int i = 0; i < 4; i++)
+		{
+			ip_src_address[ip_recv_que_tail][i] = ip_hdr->source_ip[i];
+		}
 		data_type[ip_recv_que_tail] = ip_hdr->upper_protocol_type;
 		ip_recv_que_tail = (ip_recv_que_tail + 1) % MAX_QUE;
 		V(&ip_recv_mutex);
@@ -226,19 +206,21 @@ int network_ipv4_recv(u_int8_t *ip_buffer)
 	return SUCCESS;
 }
 
-DWORD WINAPI thread_write(LPVOID pM)
+DWORD WINAPI thread_ip_handout(LPVOID pM)
 {
-	FILE *fp = fopen("IP_Receive.png", "wb");
 	u_int8_t current_type;
+	u_int8_t buffer[MAX_DATA_SIZE];
+	u_int8_t source_ip[4];
 	while(1)
 	{
 		P(&ip_recv_full);
 		P(&ip_recv_mutex);
-		if (load_data_to_file(ip_recv_pool[ip_recv_que_head], ip_recv_data_size[ip_recv_que_head], fp))
-		{
-			printf("Load to file Succeed.\n");
-		}
+		memcpy(buffer, ip_recv_pool[ip_recv_que_head], ip_recv_data_size[ip_recv_que_head]);
 		current_type = data_type[ip_recv_que_head];
+		for(int i = 0; i < 4; i++)
+		{
+			source_ip[i] = ip_src_address[ip_recv_que_head][i];
+		}
 		ip_recv_que_head = (ip_recv_que_head + 1) % MAX_QUE;
 		V(&ip_recv_mutex);
 		V(&ip_recv_empty);
@@ -249,11 +231,10 @@ DWORD WINAPI thread_write(LPVOID pM)
 			//transport_tcp_recv(buffer);
 			break;
 		case IPPROTO_UDP:
-			//transport_udp_recv(buffer);
+			transport_udp_recv(buffer, source_ip);
 			break;
 		}
 	}
-	fclose(fp);
 	exit(0);
 }
 
@@ -261,7 +242,7 @@ DWORD WINAPI init_ip_receiver(LPVOID pM)
 {
 	init_recv_data_buffer();
 	HANDLE th[1];
-	th[0] = CreateThread(NULL,0,thread_write,NULL,0,NULL);
+	th[0] = CreateThread(NULL,0,thread_ip_handout,NULL,0,NULL);
 	WaitForMultipleObjects(1,th,TRUE,INFINITE);
 	CloseHandle(th[0]);
 	exit(0);

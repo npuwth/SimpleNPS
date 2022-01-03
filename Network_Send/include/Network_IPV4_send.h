@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:05:07
- * @LastEditTime: 2021-11-27 23:08:14
+ * @LastEditTime: 2022-01-02 21:53:52
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -30,14 +30,14 @@ struct ip_header
 u_int16_t calculate_check_sum(ip_header *ip_hdr, int len);
 
 void load_ip_header(u_int8_t *ip_buffer);
-int load_ip_data(u_int8_t *ip_buffer, u_int8_t *pkt_data, int len);
+void load_ip_data(u_int8_t* ip_buffer, u_int8_t* buf, int buflen);
 
 int is_same_lan(u_int8_t *local_ip, u_int8_t *destination_ip);
 /*
 send ip packet
 call ethernet function to make a complete packet
 */
-int network_ipv4_send(u_int8_t *ip_buffer, FILE *fp);
+int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip);
 
 void init_ip_send_buffer();
 
