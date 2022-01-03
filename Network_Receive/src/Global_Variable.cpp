@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-10 15:59:41
+ * @LastEditTime: 2022-01-03 09:58:35
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -13,6 +13,7 @@
 u_int8_t local_mac[6] = { 0x50, 0xE0, 0x85, 0xA7, 0x3D, 0x70 };
 // u_int8_t local_ip[4] = { 10, 27, 36, 217 };
 u_int8_t local_ip[4] = { 10, 27, 36, 216 };
+int local_port = 80000;
 u_int8_t gateway_ip[4] = { 10, 27, 0, 1 };
 u_int8_t netmask[4] = { 255, 255, 0, 0 };
 u_int8_t dns_server_ip[4] = { 202, 117, 80, 6 };
