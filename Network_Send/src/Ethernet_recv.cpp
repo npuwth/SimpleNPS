@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-03 17:37:54
+ * @LastEditTime: 2022-01-06 14:58:23
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -59,6 +59,7 @@ u_int32_t calculate_crc(u_int8_t *buffer, int len)//calculate crc
 	u_int32_t crc;
 	//very strange here, if i note this printf, the result will be wrong!!!
 	for(int i = 0; i < len; i++) printf("%02x ", buffer[i]);
+	printf("\n");
 	crc = 0xffffffff;
 	for (i = 0; i < len; i++)
 	{

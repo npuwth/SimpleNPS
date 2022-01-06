@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-03 21:51:56
+ * @LastEditTime: 2022-01-06 14:58:09
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -105,7 +105,7 @@ DWORD WINAPI thread_send(LPVOID pM)
 		P(&ethernet_send_mutex);
 		printf("ethernet send one packet.\n");
 		send_packet_size = ethernet_send_packet_size[ethernet_send_que_head];
-		printf("send_packet_size:%d\n", send_packet_size);
+		// printf("send_packet_size:%d\n", send_packet_size);
 		memcpy(send_buffer, ethernet_send_pool[ethernet_send_que_head], send_packet_size);
 		// for(int i = 0; i < send_packet_size; i++) printf("%02x ", send_buffer[i]);
 		// printf("aaa\n");

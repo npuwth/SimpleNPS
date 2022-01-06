@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-03 13:40:39
+ * @LastEditTime: 2022-01-05 19:45:14
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -46,7 +46,7 @@ void init_ip_send_buffer()
 	ip_send_que_tail = 0;
 }
 
-u_int16_t calculate_check_sum(ip_header *ip_hdr, int len)
+u_int16_t calculate_check_sum(u_int8_t *ip_hdr, int len)
 {
 	int sum = 0, tmp = len;
 	u_int16_t *p = (u_int16_t*)ip_hdr;
@@ -166,7 +166,7 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t u
 
 		//printf("%04x\n", ip_hdr->fragment_offset);
 		ip_hdr->total_length = htons(ip_data_len + sizeof(ip_header));
-		ip_hdr->check_sum = calculate_check_sum(ip_hdr, 60);
+		ip_hdr->check_sum = calculate_check_sum((u_int8_t*)ip_hdr, 60);
 		//printf("%04x\n", ip_hdr->check_sum);
 		load_ip_data(ip_buffer + sizeof(ip_header), buf, ip_data_len);
 

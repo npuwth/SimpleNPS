@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-02 21:59:04
+ * @LastEditTime: 2022-01-06 15:08:12
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -9,6 +9,7 @@
 #include "Network_IPV4_send.h"
 #include "Network_IPV4_recv.h"
 #include "UDP_recv_send.h"
+#include "ICMP_recv_send.h"
 
 #define MAX_DATA_SIZE 65535
 #define MAX_QUE 50
@@ -72,7 +73,7 @@ int is_accept_ip_packet(struct ip_header *ip_hdr)
 	if (!flag)
 		return FAILURE;
 
-	u_int16_t check_sum = calculate_check_sum(ip_hdr, 60);
+	u_int16_t check_sum = calculate_check_sum((u_int8_t*)ip_hdr, 60);
 	if (check_sum == 0xffff || check_sum == 0x0000)
 	{
 		// printf("No error in ip_header.\n");
@@ -180,7 +181,7 @@ int network_ipv4_recv(u_int8_t *ip_buffer)
 	}
 	
 	//show a whole IP packet after building up all fragments 
-	printf("--------------IP Protocol-------------------\n");
+	printf("-----------------IP Protocol-------------------\n");
 	printf("IP version: %d\n", (ip_hdr->version_hdrlen & 0xf0));
 	printf("Type of service: %02x\n", ip_hdr->type_of_service);
 	printf("IP packet length: %d\n", len + sizeof(ip_header));
@@ -232,6 +233,9 @@ DWORD WINAPI thread_ip_handout(LPVOID pM)
 			break;
 		case IPPROTO_UDP:
 			transport_udp_recv(buffer, source_ip);
+			break;
+		case IPPROTO_ICMP:
+			transport_icmp_recv(buffer, source_ip);
 			break;
 		}
 	}

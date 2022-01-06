@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-12-29 17:28:43
- * @LastEditTime: 2022-01-03 11:30:56
+ * @LastEditTime: 2022-01-04 17:06:16
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -16,13 +16,13 @@ typedef struct SOCKET_ADDR //address type
     u_int8_t sin_ip[4];
 }socket_addr;
 
-typedef struct UDP_FIVE //five param turple
+typedef struct FIVE_PARAM //five param turple
 {
     u_int8_t local_address[4];
     u_int16_t local_port;
     u_int8_t target_address[4];
     u_int16_t target_port;
-    u_int16_t sock_type = SOCK_DGRAM;
+    u_int16_t sock_type;
 }My_SOCKET;
 
 struct PseUDP_Header //UDP fake header

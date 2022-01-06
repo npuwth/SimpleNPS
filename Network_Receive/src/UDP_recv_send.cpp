@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-12-29 21:50:20
- * @LastEditTime: 2022-01-03 22:11:48
+ * @LastEditTime: 2022-01-04 17:08:50
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -126,6 +126,7 @@ My_SOCKET* mysocket(int af, int type, int protocol)
         sockp->local_address[i] = local_ip[i];
     }
     sockp->local_port = local_port;
+    sockp->sock_type = type;
     return sockp;
 }
 

@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:05:07
- * @LastEditTime: 2022-01-03 13:41:52
+ * @LastEditTime: 2022-01-05 19:44:34
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -27,7 +27,7 @@ struct ip_header
 
 };
 
-u_int16_t calculate_check_sum(ip_header *ip_hdr, int len);
+u_int16_t calculate_check_sum(u_int8_t *ip_hdr, int len);
 
 void load_ip_header(u_int8_t *ip_buffer);
 void load_ip_data(u_int8_t* ip_buffer, u_int8_t* buf, int buflen);
