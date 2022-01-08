@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2022-01-04 16:55:00
- * @LastEditTime: 2022-01-08 16:10:20
+ * @LastEditTime: 2022-01-08 16:18:43
  * @LastEditors: npuwth
  * @Copyright 2022
  * @Description: Network Experiment
@@ -297,7 +297,7 @@ My_SOCKET* accept(My_SOCKET* old_sockp, socket_addr* client_addr, int addrlen)
     server_gp->recv_bufSize = MAX_BUFFER_SIZE;
     server_gp->server_MSS_size = 1400;
     server_gp->client_MSS_size = ntohs(tcphdr->mssSize);
-    server_gp->MSS_size = (client_gp->server_MSS_size > client_gp->client_MSS_size) ? client_gp->client_MSS_size : client_gp->server_MSS_size;
+    server_gp->MSS_size = (server_gp->server_MSS_size > server_gp->client_MSS_size) ? server_gp->client_MSS_size : server_gp->server_MSS_size;
     
     while(1)
     {
@@ -491,7 +491,7 @@ int recv(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags)
         {
             P(&tcp_recv_full);
             P(&tcp_recv_mutex);
-            if(tcp_recv_que_head == tcp_recv_que_tail) tag = 0;
+            if((tcp_recv_que_head + 1) % MAX_QUE == tcp_recv_que_tail) tag = 0;
             memcpy(recv_buffer, tcp_recv_pool[tcp_recv_que_head], tcp_total_size[tcp_recv_que_head]);
             current_size = tcp_total_size[tcp_recv_que_head];
             tcp_recv_que_head = (tcp_recv_que_head + 1) % MAX_QUE;
@@ -499,7 +499,7 @@ int recv(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags)
             V(&tcp_recv_empty);
 
             struct TCP_Header* tcphdr = (struct TCP_Header*)recv_buffer;
-            win_cfront = ntohl(tcphdr->sequence) - (client_gp->client_init_seq + 1);
+            win_cfront = ntohl(tcphdr->sequence) - (server_gp->client_init_seq + 1);
             if(win_cfront > win_start && win_cfront < win_end)
             {
                 memcpy(recv_data_buffer + win_cfront, recv_buffer + sizeof(struct TCP_Header), current_size - sizeof(struct TCP_Header));
@@ -509,6 +509,8 @@ int recv(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags)
             else
             {
                 printf("TCP Error: data not experted!\n");
+                printf("seq: %d\n", ntohl(tcphdr->sequence));
+                printf("win_cfront: %d, win_start: %d, win_end: %d\n", win_cfront, win_start, win_end);
             }
         } 
 
@@ -521,7 +523,9 @@ int recv(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags)
             }
         }
 
-        ack = i * 1400 + client_gp->client_init_seq + 1;
+        ack = i * 1400 + server_gp->client_init_seq + 1;
+
+        printf("The next byte wanted is %d\n", ack);
 
         load_tcp_header(sockp, seq, ack, ACK, sizeof(struct TCP_Header));
 
