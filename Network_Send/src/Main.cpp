@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:05:07
- * @LastEditTime: 2022-01-08 13:34:54
+ * @LastEditTime: 2022-01-08 16:24:53
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -23,7 +23,9 @@ extern u_int8_t target_ip[4];
 extern u_int16_t target_port;
 extern struct Global_Param* client_gp;
 
-u_int8_t data[MAX_DATA_SIZE] = "helloworld";
+// u_int8_t data[MAX_DATA_SIZE] = "helloworld";
+u_int8_t data[MAX_DATA_SIZE];
+
 
 int main()
 {
@@ -46,18 +48,18 @@ int main()
 
 	
 
-	// FILE* fp = fopen("data.png","rb");
+	FILE* fp = fopen("data.png","rb");
 
-	// int read_length = fread(data, 1, 22775, fp);
+	int read_length = fread(data, 1, 22775, fp);
 
-	// fclose(fp);
+	fclose(fp);
 
-	// printf("read %d bytes data from file\n", read_length);
+	printf("read %d bytes data from file\n", read_length);
 
 	connect(send_socket, &server_addr, sizeof(server_addr));
 
-	// int send_length = send(send_socket, data, 22775, 0);
-	int send_length = send(send_socket, data, 11, 0);
+	int send_length = send(send_socket, data, 22775, 0);
+	// int send_length = send(send_socket, data, 11, 0);
 
 	printf("send %d bytes data from client.\n", send_length);
 
