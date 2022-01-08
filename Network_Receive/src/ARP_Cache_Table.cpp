@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2021-12-10 15:38:09
+ * @LastEditTime: 2022-01-08 13:17:26
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -12,6 +12,8 @@
 
 extern u_int8_t local_mac[6];
 extern u_int8_t local_ip[4];
+extern u_int8_t target_mac[6];
+extern u_int8_t target_ip[4];
 extern u_int8_t gateway_ip[4];
 extern u_int8_t netmask[4];
 extern u_int8_t dns_server_ip[4];
@@ -41,6 +43,8 @@ void init_arp_table()
 {
 	struct arp_node *node;
 	node = make_arp_node(local_ip, local_mac, STATIC_STATE);
+	node = make_arp_node(target_ip, target_mac, STATIC_STATE);
+
 
 	arp_table.queue = node;
 	arp_table.head = node;

@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-05 19:45:14
+ * @LastEditTime: 2022-01-08 15:08:29
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -16,6 +16,7 @@
 #include "Ethernet_send.h"
 
 #define MAX_DATA_SIZE 1500
+#define MAX_IP_PACKET_SIZE 1440
 #define MAX_QUE 100
 
 //u_int8_t buffer[MAX_SIZE];
@@ -142,6 +143,8 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t u
 	// rewind(fp);
 	// printf("The file is %d bytes long.\n",file_len);
 	//get how many fragments
+	u_int8_t* bufp = buf;
+	printf("IP send Called by %02x\n", upper_protocol_type);
 	int number_of_fragment = (int)ceil(buflen*1.0 / MAX_IP_PACKET_SIZE);
 	u_int16_t offset = 0;
 	int ip_data_len;
@@ -168,7 +171,7 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t u
 		ip_hdr->total_length = htons(ip_data_len + sizeof(ip_header));
 		ip_hdr->check_sum = calculate_check_sum((u_int8_t*)ip_hdr, 60);
 		//printf("%04x\n", ip_hdr->check_sum);
-		load_ip_data(ip_buffer + sizeof(ip_header), buf, ip_data_len);
+		load_ip_data(ip_buffer + sizeof(ip_header), bufp, ip_data_len);
 
 		//check if the target pc mac is in arp_table
 		u_int8_t *destination_mac = is_existed_ip(ip_hdr->destination_ip);
@@ -223,6 +226,10 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t u
 		}
 		
 		//send the data to pool
+		printf("ccc\n");
+		for(unsigned int i = 0; i < ip_size_of_packet; i++) printf("%02x ", ip_buffer[i]);
+    	printf("\n");
+
 		P(&ip_send_empty);
 		P(&ip_send_mutex);
 		printf("ip generate one fragment.\n");
@@ -239,7 +246,7 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t u
 		offset += MAX_IP_PACKET_SIZE;
 		// printf("number of left fragment is %d\n",number_of_fragment);
 		number_of_fragment--;
-		buf += MAX_IP_PACKET_SIZE;
+		bufp += MAX_IP_PACKET_SIZE;
 	}
 	//auto increase one
 	ip_packet_id++;
@@ -258,7 +265,7 @@ DWORD WINAPI thread_ip_send(LPVOID pM)
 		P(&ip_send_mutex);
 		printf("ip send one fragment.\n");
 		ip_send_packet_size = ip_send_data_size[ip_send_que_head];
-		memcpy(ip_send_buffer,ip_send_pool[ip_send_que_head],ip_send_packet_size);
+		memcpy(ip_send_buffer, ip_send_pool[ip_send_que_head], ip_send_packet_size);
 		for(int i = 0; i < 6; i++)
 		{
 			ip_send_dmac[i] = ip_dmac[ip_send_que_head][i];
@@ -266,6 +273,11 @@ DWORD WINAPI thread_ip_send(LPVOID pM)
 		ip_send_que_head = (ip_send_que_head + 1) % MAX_QUE;
 		V(&ip_send_mutex);
 		V(&ip_send_empty);
+
+		// printf("aaa");
+		// for(int i = 0; i < ip_send_packet_size; i++) printf("%02x ", ip_send_buffer[i]);
+    	// printf("\n");
+
 		ethernet_send_packet(ip_send_buffer, ip_send_dmac, ETHERNET_IP, ip_send_packet_size);
 	}
 	system("pause");

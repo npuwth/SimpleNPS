@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2022-01-04 16:55:00
- * @LastEditTime: 2022-01-08 15:32:18
+ * @LastEditTime: 2022-01-08 15:32:32
  * @LastEditors: npuwth
  * @Copyright 2022
  * @Description: Network Experiment
@@ -164,6 +164,10 @@ int connect(My_SOCKET* sockp, socket_addr* server_addr, int addrlen)
     //send ack to server
     load_tcp_header(sockp, seq, ack, ACK, sizeof(struct TCP_Header));
 
+    // printf("bbb");
+    // for(int i = 0; i < 24; i++) printf("%02x ", tcp_buffer[i]);
+    // printf("\n");
+
     network_ipv4_send(tcp_buffer, sizeof(struct TCP_Header), server_addr->sin_ip, IPPROTO_TCP);
 
     //global param
@@ -177,6 +181,7 @@ int connect(My_SOCKET* sockp, socket_addr* server_addr, int addrlen)
     client_gp->client_MSS_size = 1400;
     client_gp->MSS_size = (client_gp->server_MSS_size > client_gp->client_MSS_size) ? client_gp->client_MSS_size : client_gp->server_MSS_size;
 
+    // system("pause");
     return SUCCESS;
 }
 
@@ -277,6 +282,9 @@ My_SOCKET* accept(My_SOCKET* old_sockp, socket_addr* client_addr, int addrlen)
 
     load_tcp_header(old_sockp, seq, ack, SYN | ACK, sizeof(struct TCP_Header));
 
+    for(int i = 0; i < 24; i++) printf("%02x ", tcp_buffer[i]);
+    printf("\n");
+
     network_ipv4_send(tcp_buffer, sizeof(struct TCP_Header), client_addr->sin_ip, IPPROTO_TCP);
 
     seq = seq + 1;
@@ -342,8 +350,7 @@ void transport_tcp_recv(u_int8_t* buffer, u_int8_t* source_ip, int totalLen)
     else
     {
         printf("Error: TCP Check Sum Error!\n");
-        printf("packet_size: %d\n", totalLen);
-        printf("check_sum: %04x\n", check_sum);
+        printf("check_sum:%04x\n", check_sum);
         return;
     }
     if(ntohs(tcphdr->dstPort) == local_port)
@@ -427,8 +434,8 @@ int send(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags)
                 data_len = 1400; //MSS
             }
 
-            load_tcp_header(sockp, seq + win_cfront, ack, 0x0000, sizeof(struct TCP_Header) + data_len);
             load_tcp_data(tcp_buffer + sizeof(struct TCP_Header), buf + win_cfront, data_len);
+            load_tcp_header(sockp, seq + win_cfront, ack, 0x0000, sizeof(struct TCP_Header) + data_len);
 
             network_ipv4_send(tcp_buffer, sizeof(struct TCP_Header) + data_len, sockp->target_address, IPPROTO_TCP);
 

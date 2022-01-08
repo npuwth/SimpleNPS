@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-05 19:45:14
+ * @LastEditTime: 2022-01-08 13:24:03
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -16,6 +16,7 @@
 #include "Ethernet_send.h"
 
 #define MAX_DATA_SIZE 1500
+#define MAX_IP_PACKET_SIZE 1440
 #define MAX_QUE 100
 
 //u_int8_t buffer[MAX_SIZE];

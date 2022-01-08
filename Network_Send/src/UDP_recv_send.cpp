@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-12-29 21:50:20
- * @LastEditTime: 2022-01-04 17:07:39
+ * @LastEditTime: 2022-01-07 14:42:42
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -48,7 +48,7 @@ void init_udp_recv_buffer()
     udp_recv_que_tail = 0;
 }
 
-u_int16_t calculate_check(struct PseUDP_Header* psehdr, u_int16_t* buf, int buflen)
+u_int16_t calculate_check(u_int16_t* psehdr, u_int16_t* buf, int buflen)
 {
     int sum = 0;int count = 0;
     int len = sizeof(struct PseUDP_Header);
@@ -93,7 +93,7 @@ void load_pse_header(u_int8_t* src_address, u_int8_t* dst_address, int buflen)
         psehdr->dstAddress[i] = dst_address[i];
     }
     psehdr->reserved = 0;
-    psehdr->protocolType = 17;
+    psehdr->protocolType = IPPROTO_UDP;
     psehdr->totalLen = buflen + UDP_HEADER_SIZE;
 }
 
@@ -118,8 +118,8 @@ void load_udp_data(u_int8_t* udpbuf, u_int8_t* data_buffer, int buflen)
 
 My_SOCKET* mysocket(int af, int type, int protocol)
 {
-    init_udp_send_buffer();
-    init_udp_recv_buffer();
+    // init_udp_send_buffer();
+    // init_udp_recv_buffer();
     My_SOCKET* sockp = (My_SOCKET*)malloc(sizeof(My_SOCKET));
     for(int i = 0; i < 4; i++)
     {
@@ -152,7 +152,7 @@ int sendto(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags, socket_addr* 
 
     struct PseUDP_Header* psehdr = (struct PseUDP_Header *)udp_pseheader; //calculate checksum
     u_int16_t* udphdr = (u_int16_t *)udp_buffer;
-    u_int16_t checkSum = calculate_check(psehdr, udphdr, buflen + UDP_HEADER_SIZE);
+    u_int16_t checkSum = calculate_check((u_int16_t*)psehdr, udphdr, buflen + UDP_HEADER_SIZE);
     struct UDP_Header* udpheader = (struct UDP_Header*)udp_buffer;
     udpheader->checkSum = checkSum;
     network_ipv4_send(udp_buffer, buflen + UDP_HEADER_SIZE, dstaddr->sin_ip, IPPROTO_UDP); //use ip to send datagram
@@ -189,7 +189,7 @@ void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip) //call back funct
     // for(int i = 0; i < udphdr->udpLen; i++) printf("%02x ", buffer[i]);
     struct PseUDP_Header pse_header;
     pse_header.reserved = 0;
-    pse_header.protocolType = 17;
+    pse_header.protocolType = IPPROTO_UDP;
     pse_header.totalLen = ntohs(udphdr->udpLen);
     u_int16_t totalLen = ntohs(udphdr->udpLen);
     for(int i = 0; i < 4; i++)
@@ -197,7 +197,7 @@ void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip) //call back funct
         pse_header.srcAddress[i] = source_ip[i];
         pse_header.dstAddress[i] = local_ip[i];
     }
-    u_int16_t check_sum = calculate_check(&pse_header, (u_int16_t* )buffer, totalLen);
+    u_int16_t check_sum = calculate_check((u_int16_t*)(&pse_header), (u_int16_t* )buffer, totalLen);
     if(check_sum == 0xffff || check_sum == 0x0000)
     {
         // printf("");
@@ -248,7 +248,7 @@ void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip) //call back funct
     printf("Destination Port: %04x\n", ntohs(udphdr->dstPort));
     printf("Total Length: %04x\n", ntohs(udphdr->udpLen));
     printf("---------End of UDP Protocol-----------------\n");
-    system("pause");
+    // system("pause");
 }
 
 // DWORD WINAPI thread_udp_send(LPVOID pM)

@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-06 15:07:59
+ * @LastEditTime: 2022-01-07 23:58:42
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -10,6 +10,7 @@
 #include "Network_IPV4_recv.h"
 #include "UDP_recv_send.h"
 #include "ICMP_recv_send.h"
+#include "TCP_recv_send.h"
 
 #define MAX_DATA_SIZE 65535
 #define MAX_QUE 50
@@ -210,6 +211,7 @@ int network_ipv4_recv(u_int8_t *ip_buffer)
 DWORD WINAPI thread_ip_handout(LPVOID pM)
 {
 	u_int8_t current_type;
+	int current_size;
 	u_int8_t buffer[MAX_DATA_SIZE];
 	u_int8_t source_ip[4];
 	while(1)
@@ -218,6 +220,7 @@ DWORD WINAPI thread_ip_handout(LPVOID pM)
 		P(&ip_recv_mutex);
 		memcpy(buffer, ip_recv_pool[ip_recv_que_head], ip_recv_data_size[ip_recv_que_head]);
 		current_type = data_type[ip_recv_que_head];
+		current_size = ip_recv_data_size[ip_recv_que_head];
 		for(int i = 0; i < 4; i++)
 		{
 			source_ip[i] = ip_src_address[ip_recv_que_head][i];
@@ -229,7 +232,7 @@ DWORD WINAPI thread_ip_handout(LPVOID pM)
 		switch (current_type)//this part shouldn't be in PV area
 		{
 		case IPPROTO_TCP:
-			//transport_tcp_recv(buffer);
+			transport_tcp_recv(buffer, source_ip, current_size);
 			break;
 		case IPPROTO_UDP:
 			transport_udp_recv(buffer, source_ip);

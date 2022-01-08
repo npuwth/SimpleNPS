@@ -1,12 +1,13 @@
 /*
  * @Author: npuwth
  * @Date: 2021-12-29 17:28:43
- * @LastEditTime: 2022-01-04 17:06:51
+ * @LastEditTime: 2022-01-06 21:26:50
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
  */
-
+#ifndef _UDP_RECV_SEND_H_
+#define _UDP_RECV_SEND_H_
 #include "Header_Include.h"
 
 typedef struct SOCKET_ADDR //address type
@@ -42,6 +43,8 @@ struct UDP_Header //UDP header
     u_int16_t checkSum;
 };
 
+u_int16_t calculate_check(u_int16_t* psehdr, u_int16_t* buf, int buflen);
+
 My_SOCKET* mysocket(int af, int type, int protocol);
 
 int bind(My_SOCKET* sockp, socket_addr* server_addr, int addrlen);
@@ -53,3 +56,5 @@ int recvfrom(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags, socket_addr
 int closesocket(My_SOCKET* sockp);
 
 void transport_udp_recv(u_int8_t* buffer, u_int8_t* source_ip);
+
+#endif

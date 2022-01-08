@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-03 16:12:04
+ * @LastEditTime: 2022-01-08 13:17:02
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -42,8 +42,8 @@ struct arp_node* make_arp_node(u_int8_t *ip, u_int8_t *mac, int state)//make an 
 void init_arp_table()
 {
 	struct arp_node *node;
-	// node = make_arp_node(local_ip, local_mac, STATIC_STATE);//initialize local node
 	node = make_arp_node(local_ip, local_mac, STATIC_STATE);//initialize local node
+	node = make_arp_node(target_ip, target_mac, STATIC_STATE);//initialize local node
 
 	arp_table.queue = node;
 	arp_table.head = node;
