@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2021-11-26 15:02:57
- * @LastEditTime: 2022-01-08 13:03:57
+ * @LastEditTime: 2022-01-08 16:11:36
  * @LastEditors: npuwth
  * @Copyright 2021
  * @Description: Network Experiment
@@ -50,17 +50,17 @@ int main()
 	// int receive_length = recv(new_socket, (u_int8_t*)receive_data, 22775, 0);
 	int receive_length = recv(new_socket, (u_int8_t*)receive_data, 11, 0);
 
+	printf("tcp server receive %d bytes data.\n", receive_length);
 	printf("The data is:\n");
-
 	printf("%s", receive_data);
+	// for(int i = 0; i < 11; i++) printf("%c", receive_data[i]);
 
-	printf("tcp receive %d bytes data\n", receive_length);
 
-	FILE* fp = fopen("TCP_Receive.png","wb");
+	// FILE* fp = fopen("TCP_Receive.png","wb");
 
-	fwrite(receive_data, 1, receive_length, fp);
+	// fwrite(receive_data, 1, receive_length, fp);
 
-	fclose(fp);
+	// fclose(fp);
 
 	closesocket(new_socket, server_gp);
 

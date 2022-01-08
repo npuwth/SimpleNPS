@@ -1,7 +1,7 @@
 /*
  * @Author: npuwth
  * @Date: 2022-01-04 16:55:00
- * @LastEditTime: 2022-01-08 15:32:32
+ * @LastEditTime: 2022-01-08 16:10:20
  * @LastEditors: npuwth
  * @Copyright 2022
  * @Description: Network Experiment
@@ -533,5 +533,6 @@ int recv(My_SOCKET* sockp, u_int8_t* buf, int buflen, int flags)
         Sleep(2222);
     }
 
+    memcpy(buf, recv_data_buffer, buflen);
     return buflen;
 }
