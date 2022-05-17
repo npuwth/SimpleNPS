@@ -144,7 +144,7 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t u
 	// printf("The file is %d bytes long.\n",file_len);
 	//get how many fragments
 	u_int8_t* bufp = buf;
-	printf("IP send Called by %02x\n", upper_protocol_type);
+	// printf("IP send Called by %02x\n", upper_protocol_type);
 	int number_of_fragment = (int)ceil(buflen*1.0 / MAX_IP_PACKET_SIZE);
 	u_int16_t offset = 0;
 	int ip_data_len;
@@ -225,10 +225,10 @@ int network_ipv4_send(u_int8_t* buf, int buflen, u_int8_t* target_ip, u_int8_t u
 			}
 		}
 		
-		//send the data to pool
-		printf("ccc\n");
-		for(unsigned int i = 0; i < ip_size_of_packet; i++) printf("%02x ", ip_buffer[i]);
-    	printf("\n");
+		// send the data to pool
+		// printf("ccc\n");
+		// for(unsigned int i = 0; i < ip_size_of_packet; i++) printf("%02x ", ip_buffer[i]);
+    	// printf("\n");
 
 		P(&ip_send_empty);
 		P(&ip_send_mutex);

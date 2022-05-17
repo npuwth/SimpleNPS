@@ -69,12 +69,12 @@ void load_ethernet_data(u_int8_t *buffer, u_int8_t *upper_buffer, int len)
 		*(buffer + len) = 0;
 		len++;
 	}
-	printf("buffer address:%p\n", buffer);
+	// printf("buffer address:%p\n", buffer);
 	u_int32_t crc = calculate_crc((u_int8_t *)buffer, len);
 
 	*((u_int32_t *)(buffer + len)) = crc;
 	size_of_packet += (len + 4);
-	printf("src crc:%08x\n", crc);
+	// printf("src crc:%08x\n", crc);
 }
 
 int ethernet_send_packet(u_int8_t *upper_buffer, u_int8_t *destination_mac, u_int16_t ethernet_type, int ethernet_upper_len)
